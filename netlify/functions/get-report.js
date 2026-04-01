@@ -2,7 +2,11 @@ const { getStore } = require("@netlify/blobs");
 
 exports.handler = async (event) => {
   try {
-    const store = getStore("reports");
+    const store = getStore({
+      name: "reports",
+      siteID: process.env.NETLIFY_SITE_ID,
+      token: process.env.NETLIFY_AUTH_TOKEN,
+    });
     const data = await store.get("latest", { type: "json" });
     if (!data) {
       return { statusCode: 404, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ error: "尚無報告數據" }) };
