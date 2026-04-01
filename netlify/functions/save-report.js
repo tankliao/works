@@ -21,7 +21,11 @@ exports.handler = async (event) => {
   }
 
   try {
-    const store = getStore("reports");
+    const store = getStore({
+      name: "reports",
+      siteID: process.env.NETLIFY_SITE_ID,
+      token: process.env.NETLIFY_AUTH_TOKEN,
+    });
     await store.setJSON("latest", { ...reportData, savedAt: new Date().toISOString() });
     return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ success: true }) };
   } catch (err) {
