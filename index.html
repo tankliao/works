@@ -15,23 +15,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .blob-1{width:600px;height:600px;background:rgba(254,44,85,0.12);top:-200px;right:-100px}
 .blob-2{width:500px;height:500px;background:rgba(37,244,238,0.10);bottom:-100px;left:-100px}
 .container{max-width:1100px;margin:0 auto;padding:0 24px 80px;position:relative;z-index:1}
-
-/* LOADING STATE */
-#loading-state{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
-.spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--tk-red);border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{color:var(--muted);font-size:14px}
-
-/* NO DATA STATE */
-#no-data-state{min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center}
-.no-data-icon{font-size:64px;margin-bottom:8px}
-.no-data-title{font-size:22px;font-weight:700}
-.no-data-desc{color:var(--muted);font-size:14px;line-height:1.7;max-width:360px}
-
-/* REPORT */
-#report-state{display:none}
-header{padding:56px 0 40px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--border);margin-bottom:48px;flex-wrap:wrap;gap:16px}
 .grad-text{background:linear-gradient(135deg,var(--tk-red),var(--tk-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+header{padding:56px 0 40px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--border);margin-bottom:48px;flex-wrap:wrap;gap:16px}
 .brand-tag{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;display:block}
 header h1{font-size:clamp(22px,4vw,38px);font-weight:900;letter-spacing:-1px;line-height:1.15}
 .header-meta{text-align:right}
@@ -86,149 +71,169 @@ footer p{font-size:12px;color:var(--muted);font-family:'Space Mono',monospace}
 <div class="blob blob-2"></div>
 <div class="container">
 
-  <!-- Loading -->
-  <div id="loading-state">
-    <div class="spinner"></div>
-    <div class="loading-text">載入最新報告⋯</div>
+<header>
+  <div>
+    <span class="brand-tag grad-text">TikTok Shop JP · 週報</span>
+    <h1 id="rep-title">週次數據報告</h1>
   </div>
-
-  <!-- No Data -->
-  <div id="no-data-state">
-    <div class="no-data-icon">📋</div>
-    <div class="no-data-title">本週報告尚未發布</div>
-    <div class="no-data-desc">管理員正在準備本週數據，請稍後再回來查看。<br>通常在每週一更新。</div>
+  <div class="header-meta">
+    <div class="period" id="rep-period"></div>
+    <div class="generated" id="rep-generated"></div>
   </div>
+</header>
 
-  <!-- Report -->
-  <div id="report-state">
-    <header>
-      <div>
-        <span class="brand-tag grad-text">TikTok Shop JP · 週報</span>
-        <h1 id="rep-title">週次數據報告</h1>
-      </div>
-      <div class="header-meta">
-        <div class="period" id="rep-period"></div>
-        <div class="generated" id="rep-generated"></div>
-      </div>
-    </header>
+<div class="section-label">核心 KPI</div>
+<div class="kpi-grid" id="kpi-grid"></div>
 
-    <div class="section-label">核心 KPI</div>
-    <div class="kpi-grid" id="kpi-grid"></div>
-
-    <div class="charts-grid">
-      <div class="card"><div class="card-title">📈 本週 GMV 每日走勢</div><canvas id="gmvChart"></canvas></div>
-      <div class="card"><div class="card-title">🔀 流量來源分析</div><canvas id="trafficChart"></canvas></div>
-    </div>
-    <div class="card"><div class="card-title">🎬 影片表現 Top 5</div><canvas id="videoChart" style="max-height:180px"></canvas></div>
-
-    <div class="section-label">商品表現</div>
-    <div class="card">
-      <div class="card-title">🛍️ 商品排名（本週銷售額）</div>
-      <table class="product-table">
-        <thead><tr><th>#</th><th>商品名稱</th><th>曝光數</th><th>點擊率 CTR</th><th>轉換率 CVR</th><th>銷售額</th><th>狀態</th></tr></thead>
-        <tbody id="product-tbody"></tbody>
-      </table>
-    </div>
-
-    <div class="section-label">AI 分析建議</div>
-    <div class="ai-section">
-      <div class="ai-header">
-        <div class="ai-icon">✦</div>
-        <div>
-          <div class="ai-title">本週 AI 洞察報告</div>
-          <div class="ai-subtitle" id="ai-sub"></div>
-        </div>
-      </div>
-      <div class="ai-blocks">
-        <div><div class="ai-block-title h">本週亮點</div><div id="ai-h"></div></div>
-        <div><div class="ai-block-title a">需要關注</div><div id="ai-a"></div></div>
-        <div><div class="ai-block-title r">下週行動建議</div><div id="ai-r"></div></div>
-      </div>
-    </div>
-
-    <footer>
-      <div class="logo">TK SHOP ANALYTICS</div>
-      <p id="footer-txt">每週更新 · Confidential</p>
-    </footer>
-  </div>
-
+<div class="charts-grid">
+  <div class="card"><div class="card-title">📈 本週 GMV 每日走勢</div><canvas id="gmvChart"></canvas></div>
+  <div class="card"><div class="card-title">🔀 流量來源分析</div><canvas id="trafficChart"></canvas></div>
 </div>
+<div class="card"><div class="card-title">🎬 影片表現 Top 5</div><canvas id="videoChart" style="max-height:180px"></canvas></div>
+
+<div class="section-label">商品表現</div>
+<div class="card">
+  <div class="card-title">🛍️ 商品排名（本週銷售額）</div>
+  <table class="product-table">
+    <thead><tr><th>#</th><th>商品名稱</th><th>曝光數</th><th>點擊率 CTR</th><th>轉換率 CVR</th><th>銷售額</th><th>狀態</th></tr></thead>
+    <tbody id="product-tbody"></tbody>
+  </table>
+</div>
+
+<div class="section-label">AI 分析建議</div>
+<div class="ai-section">
+  <div class="ai-header">
+    <div class="ai-icon">✦</div>
+    <div>
+      <div class="ai-title">本週 AI 洞察報告</div>
+      <div class="ai-subtitle" id="ai-sub"></div>
+    </div>
+  </div>
+  <div class="ai-blocks">
+    <div><div class="ai-block-title h">本週亮點</div><div id="ai-h"></div></div>
+    <div><div class="ai-block-title a">需要關注</div><div id="ai-a"></div></div>
+    <div><div class="ai-block-title r">下週行動建議</div><div id="ai-r"></div></div>
+  </div>
+</div>
+
+<footer>
+  <div class="logo">TK SHOP ANALYTICS</div>
+  <p id="footer-txt">每週更新 · Confidential</p>
+</footer>
+</div>
+
 <script>
-let charts = {};
+// ══════════════════════════════════════════
+// ★ 每週由 Claude 更新這個區塊的數據 ★
+// ══════════════════════════════════════════
+const REPORT = {
+  period_start: "2025/03/24",
+  period_end:   "2025/03/30",
+  generated_at: "2025/03/31",
 
-async function loadReport() {
-  try {
-    const res = await fetch('/.netlify/functions/get-report');
-    if (!res.ok) { showState('no-data'); return; }
-    const data = await res.json();
-    if (!data || !data.parsed) { showState('no-data'); return; }
-    renderReport(data);
-    showState('report');
-  } catch(e) {
-    showState('no-data');
+  kpi: {
+    gmv:    { value: 842500,  wow: 18.3  },
+    orders: { value: 1247,    wow: 12.1  },
+    plays:  { value: 28600,   wow: 34.7  },
+    aov:    { value: 675,     wow: -5.2  },
+  },
+
+  gmv_trend: {
+    labels: ["03/24","03/25","03/26","03/27","03/28","03/29","03/30"],
+    values: [98000, 112000, 125000, 108000, 143000, 138000, 118500]
+  },
+
+  traffic: [
+    { label: "For You（推薦）", value: 55 },
+    { label: "Shop Tab",       value: 22 },
+    { label: "搜尋",            value: 13 },
+    { label: "追蹤",            value: 7  },
+    { label: "其他",            value: 3  }
+  ],
+
+  videos: [
+    { name: "セラム使用前後比較", plays: 8400, cvr: 4.8, sales: 95000 },
+    { name: "UV比較動画",        plays: 6200, cvr: 3.2, sales: 68000 },
+    { name: "リップ春色紹介",     plays: 5100, cvr: 2.9, sales: 52000 },
+    { name: "朝スキンケアルーティン", plays: 4800, cvr: 2.1, sales: 41000 },
+    { name: "マスク使い方解説",   plays: 3900, cvr: 2.6, sales: 38000 }
+  ],
+
+  products: [
+    { name: "モイスチャーセラム 30ml", impressions: 48200, ctr: 7.2, cvr: 4.8, sales: 312000, status: "hot"  },
+    { name: "UVプロテクション SPF50+", impressions: 35600, ctr: 5.5, cvr: 3.2, sales: 198400, status: "good" },
+    { name: "リップグロスセット 4色",   impressions: 29100, ctr: 4.4, cvr: 2.9, sales: 156200, status: "good" },
+    { name: "クレンジングオイル 150ml", impressions: 41800, ctr: 1.8, cvr: 1.1, sales: 88000,  status: "warn" },
+    { name: "フェイスマスク 5枚入",     impressions: 22400, ctr: 3.8, cvr: 2.6, sales: 87900,  status: "good" }
+  ],
+
+  ai: {
+    highlights: [
+      "本週 GMV 達 ¥842,500 円，較上週成長 18.3%，超越本月目標 ¥800,000。",
+      "「モイスチャーセラム」CTR 7.2% 遠超平均，單品貢獻本週 37% GMV。",
+      "For You 自然流量佔 55%，演算法推薦效果良好，影片內容品質持續提升。"
+    ],
+    alerts: [
+      "「クレンジングオイル」曝光達 41,800 但 CTR 僅 1.8%，主圖或定價可能需要優化。",
+      "平均客單價下滑 -5.2%，建議設計組合商品提升每單消費金額。"
+    ],
+    actions: [
+      "週四 20:00 發布「セラム使用前後比較」30 秒影片，把握日本晚間黃金時段。",
+      "「クレンジングオイル」更換主圖為使用前後對比照，目標 CTR 提升至 4%+。",
+      "推出「セラム + マスク」限定組合 ¥1,980，目標客單價回升至 ¥720 以上。"
+    ]
   }
-}
+};
+// ══════════════════════════════════════════
 
-function showState(name) {
-  document.getElementById('loading-state').style.display  = name==='loading' ? 'flex'  : 'none';
-  document.getElementById('no-data-state').style.display  = name==='no-data' ? 'flex'  : 'none';
-  document.getElementById('report-state').style.display   = name==='report'  ? 'block' : 'none';
-}
+// ── Render ──
+document.getElementById('rep-period').textContent = `📅 ${REPORT.period_start} — ${REPORT.period_end}`;
+document.getElementById('rep-generated').textContent = `更新日期：${REPORT.generated_at}`;
 
-function renderReport(data) {
-  const {parsed, kpi, ai, generatedAt} = data;
-  const {dailySales:S, videos:V, products:P, trafficData:T} = parsed;
-  const n = S.length;
+// KPI
+const kpiDefs = [
+  {key:'gmv',    label:'週次 GMV',    pre:'¥', unit:'円', fmt:v=>Math.round(v).toLocaleString()},
+  {key:'orders', label:'訂單數',      pre:'',  unit:'件', fmt:v=>Math.round(v).toLocaleString()},
+  {key:'plays',  label:'影片播放總計', pre:'',  unit:'次', fmt:v=>v>=10000?(v/10000).toFixed(1)+'万':v.toLocaleString()},
+  {key:'aov',    label:'平均客單價',  pre:'¥', unit:'円', fmt:v=>Math.round(v).toLocaleString()},
+];
+const grid = document.getElementById('kpi-grid');
+kpiDefs.forEach(d => {
+  const val = REPORT.kpi[d.key];
+  const wc = val.wow > 0 ? 'up' : val.wow < 0 ? 'down' : 'neutral';
+  const wt = val.wow != null ? `${Math.abs(val.wow)}% 較上週` : '—';
+  grid.innerHTML += `<div class="kpi-card"><div class="kpi-label">${d.label}</div><div class="kpi-value">${d.pre}${d.fmt(val.value)}<span class="kpi-unit">${d.unit}</span></div><div class="wow ${wc}">${wt}</div></div>`;
+});
 
-  document.getElementById('rep-period').textContent = `📅 ${kpi.dateRange.start} — ${kpi.dateRange.end}`;
-  document.getElementById('rep-generated').textContent = `發布時間：${new Date(generatedAt).toLocaleString('zh-TW')}`;
+// GMV Chart
+const gc = document.getElementById('gmvChart').getContext('2d');
+const gr = gc.createLinearGradient(0,0,0,220); gr.addColorStop(0,'rgba(254,44,85,0.35)'); gr.addColorStop(1,'rgba(254,44,85,0)');
+new Chart(gc, {type:'line', data:{labels:REPORT.gmv_trend.labels, datasets:[{data:REPORT.gmv_trend.values, borderColor:'#FE2C55', backgroundColor:gr, tension:.4, fill:true, pointBackgroundColor:'#FE2C55', pointRadius:5, pointHoverRadius:8}]},
+  options:{responsive:true, plugins:{legend:{display:false}}, scales:{x:{grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'rgba(232,234,240,0.5)', font:{family:'Space Mono',size:10}}}, y:{grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'rgba(232,234,240,0.5)', font:{family:'Space Mono',size:10}, callback:v=>'¥'+(v>=10000?(v/10000).toFixed(0)+'万':v)}}}}});
 
-  // KPI Cards
-  const defs=[
-    {key:'gmv',label:'週次 GMV',pre:'¥',unit:'円',fmt:v=>Math.round(v).toLocaleString()},
-    {key:'orders',label:'訂單數',pre:'',unit:'件',fmt:v=>Math.round(v).toLocaleString()},
-    {key:'plays',label:'影片播放總計',pre:'',unit:'次',fmt:v=>v>=10000?(v/10000).toFixed(1)+'万':v.toLocaleString()},
-    {key:'aov',label:'平均客單價',pre:'¥',unit:'円',fmt:v=>Math.round(v).toLocaleString()},
-  ];
-  const grid=document.getElementById('kpi-grid');grid.innerHTML='';
-  defs.forEach(d=>{
-    const val=kpi[d.key],wc=val.wow>0?'up':val.wow<0?'down':'neutral',wt=val.wow!=null?`${Math.abs(val.wow)}% 較上週`:'—';
-    grid.innerHTML+=`<div class="kpi-card"><div class="kpi-label">${d.label}</div><div class="kpi-value">${d.pre}${d.fmt(val.value)}<span class="kpi-unit">${d.unit}</span></div><div class="wow ${wc}">${wt}</div></div>`;
-  });
+// Traffic Chart
+new Chart(document.getElementById('trafficChart').getContext('2d'), {type:'doughnut', data:{labels:REPORT.traffic.map(t=>t.label), datasets:[{data:REPORT.traffic.map(t=>t.value), backgroundColor:['#FE2C55','#25F4EE','#F7B731','#9B59B6','rgba(255,255,255,0.2)'], borderWidth:0, hoverOffset:6}]},
+  options:{responsive:true, plugins:{legend:{position:'bottom', labels:{color:'rgba(232,234,240,0.6)', font:{family:'Noto Sans TC',size:11}, padding:10, boxWidth:10}}}}});
 
-  // GMV Chart
-  const recent=S.slice(Math.max(0,n-7));
-  if(charts.gmv)charts.gmv.destroy();
-  const gc=document.getElementById('gmvChart').getContext('2d');
-  const gr=gc.createLinearGradient(0,0,0,220);gr.addColorStop(0,'rgba(254,44,85,0.35)');gr.addColorStop(1,'rgba(254,44,85,0)');
-  charts.gmv=new Chart(gc,{type:'line',data:{labels:recent.map(r=>r.date.slice(5)),datasets:[{data:recent.map(r=>r.gmv),borderColor:'#FE2C55',backgroundColor:gr,tension:.4,fill:true,pointBackgroundColor:'#FE2C55',pointRadius:5,pointHoverRadius:8}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'rgba(232,234,240,0.5)',font:{family:'Space Mono',size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'rgba(232,234,240,0.5)',font:{family:'Space Mono',size:10},callback:v=>'¥'+(v>=10000?(v/10000).toFixed(0)+'万':v)}}}}});
+// Video Chart
+new Chart(document.getElementById('videoChart').getContext('2d'), {type:'bar', data:{labels:REPORT.videos.map(v=>v.name), datasets:[{label:'播放數', data:REPORT.videos.map(v=>v.plays), backgroundColor:ctx=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,180); g.addColorStop(0,'rgba(254,44,85,0.85)'); g.addColorStop(1,'rgba(37,244,238,0.4)'); return g}, borderRadius:6}]},
+  options:{indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'rgba(232,234,240,0.5)', font:{family:'Space Mono',size:10}}}, y:{grid:{display:false}, ticks:{color:'rgba(232,234,240,0.7)', font:{family:'Noto Sans TC',size:12}}}}}});
 
-  // Traffic
-  if(charts.traffic)charts.traffic.destroy();
-  charts.traffic=new Chart(document.getElementById('trafficChart').getContext('2d'),{type:'doughnut',data:{labels:T.map(t=>t.label),datasets:[{data:T.map(t=>t.value),backgroundColor:['#FE2C55','#25F4EE','#F7B731','#9B59B6','rgba(255,255,255,0.2)','#2ECC71'],borderWidth:0,hoverOffset:6}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'rgba(232,234,240,0.6)',font:{family:'Noto Sans TC',size:11},padding:10,boxWidth:10}}}}});
+// Product Table
+const rc = ['gold','silver','bronze','',''];
+const tb = document.getElementById('product-tbody');
+const mx = Math.max(...REPORT.products.map(p=>p.ctr), 1);
+REPORT.products.forEach((p,i) => {
+  const lbl = p.status==='hot'?'表現優異':p.status==='warn'?'需要優化':'穩定';
+  tb.innerHTML += `<tr><td><span class="rank ${rc[i]||''}">${String(i+1).padStart(2,'0')}</span></td><td>${p.name}</td><td>${(p.impressions||0).toLocaleString()}</td><td><div class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:${Math.round(p.ctr/mx*100)}%"></div></div>${p.ctr.toFixed(1)}%</div></td><td>${p.cvr.toFixed(1)}%</td><td>¥${Math.round(p.sales).toLocaleString()}</td><td><span class="badge ${p.status}">${lbl}</span></td></tr>`;
+});
 
-  // Video
-  if(charts.video)charts.video.destroy();
-  if(V.length>0){charts.video=new Chart(document.getElementById('videoChart').getContext('2d'),{type:'bar',data:{labels:V.map(v=>v.name),datasets:[{label:'播放數',data:V.map(v=>v.plays),backgroundColor:ctx=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,180);g.addColorStop(0,'rgba(254,44,85,0.85)');g.addColorStop(1,'rgba(37,244,238,0.4)');return g},borderRadius:6}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'rgba(232,234,240,0.5)',font:{family:'Space Mono',size:10}}},y:{grid:{display:false},ticks:{color:'rgba(232,234,240,0.7)',font:{family:'Noto Sans TC',size:12}}}}}});}
-
-  // Product Table
-  const rc=['gold','silver','bronze','',''];
-  const tb=document.getElementById('product-tbody');tb.innerHTML='';
-  const mx=Math.max(...P.map(p=>p.ctr),1);
-  P.forEach((p,i)=>{
-    const lbl=p.status==='hot'?'表現優異':p.status==='warn'?'需要優化':'穩定';
-    tb.innerHTML+=`<tr><td><span class="rank ${rc[i]||''}">${String(i+1).padStart(2,'0')}</span></td><td>${p.name}</td><td>${(p.impressions||0).toLocaleString()}</td><td><div class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:${Math.round(p.ctr/mx*100)}%"></div></div>${p.ctr.toFixed(1)}%</div></td><td>${p.cvr.toFixed(1)}%</td><td>¥${Math.round(p.sales).toLocaleString()}</td><td><span class="badge ${p.status}">${lbl}</span></td></tr>`;
-  });
-
-  // AI
-  const mk=(items,dc)=>items.map(t=>`<div class="ai-item"><div class="ai-dot ${dc}"></div><span>${t}</span></div>`).join('');
-  document.getElementById('ai-h').innerHTML=mk(ai.highlights||[],'c');
-  document.getElementById('ai-a').innerHTML=mk(ai.alerts||[],'r');
-  document.getElementById('ai-r').innerHTML=mk(ai.actions||[],'g');
-  document.getElementById('ai-sub').textContent=`依據本週數據自動生成 · ${new Date(generatedAt).toLocaleDateString('zh-TW')}`;
-}
-
-loadReport();
+// AI
+const mk = (items, dc) => items.map(t => `<div class="ai-item"><div class="ai-dot ${dc}"></div><span>${t}</span></div>`).join('');
+document.getElementById('ai-h').innerHTML = mk(REPORT.ai.highlights, 'c');
+document.getElementById('ai-a').innerHTML = mk(REPORT.ai.alerts, 'r');
+document.getElementById('ai-r').innerHTML = mk(REPORT.ai.actions, 'g');
+document.getElementById('ai-sub').textContent = `依據本週數據自動生成 · ${REPORT.generated_at}`;
 </script>
 </body>
 </html>
