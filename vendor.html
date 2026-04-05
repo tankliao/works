@@ -342,7 +342,7 @@ function parseCSVLine(line) {
 
 function mapType(t){const m={'影片':'video','拍攝':'video','發布':'video','video':'video','商品':'product','product':'product','商品資料':'product','上架':'product','樣品':'sample','sample':'sample','產品寄送':'sample','寄送':'sample'};for(const k of Object.keys(m)){if(t.includes(k))return m[k];}return 'product';}
 function mapStatus(s){if(s.includes('完成')||s==='done')return'done';if(s.includes('進行')||s==='ongoing')return'ongoing';return'pending';}
-function normalizeDate(d){return d.replace(/\//g,'-').replace(/(\d{4})-(\d{1,2})-(\d{1,2})/,(_,y,m,day)=>`${y}-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);}
+function normalizeDate(d){const m=d.replace(/\//g,'-').match(/(\d{4})-(\d{1,2})-(\d{1,2})/);return m?`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`:d;}
 
 function parseSchedule(csv) {
   const lines = csv.trim().split('\n');
@@ -554,15 +554,28 @@ function getCalendarWeeks(year, month) {
   return weeks;
 }
 
-// 判斷 Sheet 裡的週期是否屬於日曆週範圍（比對月/日部分）
 function rangesOverlap(weekStr, calRange) {
-  // weekStr 已經被 normalizeWeek 處理為 "2026/03/22~03/28"
-  // calRange 是 getCalendarWeeks 產生的 "3/22~3/28" 格式
-  // 提取 weekStr 的月/日部分
-  const weekPart = weekStr.replace(/^\d{4}\//,''); // "03/22~03/28"
-  const calNorm = calRange.replace(/(\d+)\/(\d+)/g, (_,m,d) =>
-    `${m.padStart(2,'0')}/${d.padStart(2,'0')}`); // "03/22~03/28"
-  return weekPart === calNorm;
+  // weekStr e.g. "2026/03/22~03/28" or "2026/03/29~2026/04/04"
+  // calRange e.g. "3/23~3/29" from getCalendarWeeks
+  // Strategy: check if the START date of weekStr falls within the calRange window
+  const extractStart = w => {
+    const m = w.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+    return m ? new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3])) : null;
+  };
+  const parseCalRange = cr => {
+    const parts = cr.split('~');
+    const s = parts[0].match(/(\d{1,2})\/(\d{1,2})/);
+    const e = parts[1] ? parts[1].match(/(\d{1,2})\/(\d{1,2})/) : null;
+    if (!s) return null;
+    const year = new Date().getFullYear();
+    const startD = new Date(year, parseInt(s[1])-1, parseInt(s[2]));
+    const endD = e ? new Date(year, parseInt(e[1])-1, parseInt(e[2])) : startD;
+    return { startD, endD };
+  };
+  const ws = extractStart(weekStr);
+  const cal = parseCalRange(calRange);
+  if (!ws || !cal) return false;
+  return ws >= cal.startD && ws <= cal.endD;
 }
 
 function changeDisplayMonth(dir) {
