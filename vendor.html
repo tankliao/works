@@ -228,7 +228,7 @@ footer p{font-size:12px;color:var(--text-3)}
   <div class="card">
     <div class="card-title">🛍️ 商品排名（GMV）</div>
     <table class="data-table">
-      <thead><tr><th>#</th><th>商品名稱</th><th>GMV</th><th>訂單數</th><th>曝光數</th><th>商城 CTR</th><th>狀態</th></tr></thead>
+      <thead><tr><th>#</th><th>商品名稱</th><th>GMV</th><th>訂單數</th><th>曝光數</th><th>商城 CTR</th></tr></thead>
       <tbody id="product-tbody"></tbody>
     </table>
   </div>
@@ -255,12 +255,7 @@ footer p{font-size:12px;color:var(--text-3)}
       <div class="month-header"><div class="month-title" id="sched-month-title"></div><div class="nav-btns"><button class="nav-btn" onclick="changeSchedMonth(-1)">‹</button><button class="nav-btn" onclick="changeSchedMonth(1)">›</button></div></div>
       <div class="cal-grid" id="cal-grid"></div>
     </div>
-  </div>
-    <table class="history-table">
-      <thead><tr><th>記錄日期</th><th>週期</th><th>本週亮點</th><th>需要關注</th><th>行動建議</th></tr></thead>
-      <tbody id="history-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:24px">生成 AI 分析後將自動儲存於此</td></tr></tbody>
-    </table>
-  </div>
+  </div></div>
 
   <footer><div class="logo">TK SHOP ANALYTICS</div><p id="footer-txt"></p></footer>
 </div>
@@ -373,7 +368,6 @@ function parseSchedule(csv) {
       type:   mapType(r['類型']||r['type']||''),
       title:  r['標題']||r['title']||'',
       detail: r['說明']||r['detail']||'',
-      status: mapStatus(r['狀態']||r['status']||''),
     };
   }).filter(r => r.date && r.title);
 }
@@ -442,8 +436,7 @@ function parseProducts(csv) {
     const clicks = parseInt(r['商城页面浏览次数']||'0')||0;
     const ctr    = imp > 0 ? Math.round(clicks/imp*1000)/10 : 0;
     if (!name || name === '商品') continue;
-    results.push({ week, name_jp: name, name_zh: '', gmv, orders, impressions: imp, ctr,
-      status: gmv > 0 ? (ctr > 5 ? 'hot' : 'good') : (imp > 0 ? 'warn' : 'pending') });
+    results.push({ week, name_jp: name, name_zh: '', gmv, orders, impressions: imp, ctr});
   }
   return results;
 }
@@ -699,8 +692,6 @@ function renderDataForWeek(week) {
   } else {
     const maxCtr = Math.max(...prods.map(p=>p.ctr), 1);
     pt.innerHTML = prods.slice(0,8).map((p,i) => {
-      const lbl = p.status==='hot'?'高轉換':p.status==='warn'?'需優化':p.status==='pending'?'準備中':'穩定';
-      const bc  = p.status==='hot'?'hot':p.status==='warn'?'warn':p.status==='pending'?'pending':'good';
       return `<tr>
         <td data-label="#"><span class="rank ${['r1','r2','r3','','','','',''][i]||''}">${String(i+1).padStart(2,'0')}</span></td>
         <td data-label="商品名稱"><div class="name-jp">${p.name_jp.slice(0,28)}${p.name_jp.length>28?'…':''}</div>${p.name_zh?`<div class="name-zh">${p.name_zh}</div>`:''}</td>
@@ -708,7 +699,6 @@ function renderDataForWeek(week) {
         <td data-label="訂單數">${p.orders.toLocaleString()}</td>
         <td data-label="曝光數" style="color:var(--text-2)">${p.impressions.toLocaleString()}</td>
         <td data-label="CTR"><span style="font-size:12px;font-weight:500">${p.ctr.toFixed(1)}%</span></td>
-        <td data-label="狀態"><span class="badge ${bc}">${lbl}</span></td>
       </tr>`;
     }).join('');
   }
