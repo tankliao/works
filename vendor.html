@@ -410,47 +410,72 @@ function parseSchedule(csv) {
   }).filter(r => r.date && r.title);
 }
 
-// 商品/影片：A欄是週期，B欄起是原始數據（含每週的標題行）
-// 辨識：B欄值是 "ID" 或 "达人昵称" → 是標題行，跳過
+// 標準化週期格式 → "2026/03/22~03/28"
+// 接受各種輸入：2026/3/22~2026/3/28、2026/03/22~03/28、2026/3/15~2026/3/21 等
+function normalizeWeek(raw) {
+  if (!raw || !raw.includes('~')) return '';
+  const clean = raw.replace(/\s/g,'');
+  const parts = clean.split('~');
+  if (parts.length < 2) return clean;
+
+  // 解析起始日期
+  const parseDate = s => {
+    const m = s.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+    if (m) return { y:m[1], mo:m[2].padStart(2,'0'), d:m[3].padStart(2,'0') };
+    // 只有 月/日 格式
+    const m2 = s.match(/(\d{1,2})\/(\d{1,2})/);
+    if (m2) return { mo:m2[1].padStart(2,'0'), d:m2[2].padStart(2,'0') };
+    return null;
+  };
+
+  const start = parseDate(parts[0]);
+  const end   = parseDate(parts[1]);
+  if (!start || !end) return clean;
+
+  const year = start.y || new Date().getFullYear().toString();
+  const endMo = end.mo || start.mo;
+  return `${year}/${start.mo}/${start.d}~${endMo}/${end.d}`;
+}
+
+// 取週期的年月，用於月份分組
+function weekToMonth(week) {
+  const m = week.match(/^(\d{4}\/\d{2})/);
+  return m ? m[1] : week.slice(0,7);
+}
+
 function parseProducts(csv) {
   const lines = csv.trim().split('\n');
   const results = [];
-  let currentWeek = '', currentHeaders = [];
 
-  for (const line of lines) {
-    const cols = parseCSVLine(line);
-    if (!cols.length || cols.every(c => !c)) continue;
+  // 找標題行：B欄是 "ID" 的那行
+  let headerRowIdx = -1, headers = [];
+  for (let i = 0; i < lines.length; i++) {
+    const cols = parseCSVLine(lines[i]);
+    const b = (cols[1]||'').replace(/^"|"$/g,'').trim();
+    if (b === 'ID') { headerRowIdx = i; headers = cols.slice(1).map(c=>c.replace(/^"|"$/g,'')); break; }
+  }
+  if (headerRowIdx < 0) return [];
 
-    const weekCell = cols[0].replace(/^"|"$/g,'').trim();
+  // 從標題行後讀每筆數據，A欄各自帶週期
+  for (let i = headerRowIdx + 1; i < lines.length; i++) {
+    const cols = parseCSVLine(lines[i]);
+    if (!cols.length || cols.every(c=>!c)) continue;
+    const rawWeek    = (cols[0]||'').replace(/^"|"$/g,'').trim();
     const secondCell = (cols[1]||'').replace(/^"|"$/g,'').trim();
-
-    // A欄有週期就更新
-    if (weekCell && weekCell.includes('~')) currentWeek = weekCell;
-
-    // B欄是 "ID" → 標題行
-    if (secondCell === 'ID' || secondCell === '商品' && cols.length > 5) {
-      currentHeaders = cols.slice(1).map(c => c.replace(/^"|"$/g,''));
-      continue;
-    }
-
-    if (!currentWeek || !currentHeaders.length || !secondCell) continue;
-
+    if (secondCell === 'ID' || !secondCell) continue;
+    const week = rawWeek.includes('~') ? normalizeWeek(rawWeek) : '';
+    if (!week) continue;
     const r = {};
-    cols.slice(1).forEach((v,i) => { r[currentHeaders[i]] = v.replace(/^"|"$/g,''); });
-
-    const name  = r['商品'] || '';
-    const gmv   = parseInt((r['GMV']||'0').replace(/[¥,円]/g,''))||0;
+    cols.slice(1).forEach((v,j) => { r[headers[j]||''] = v.replace(/^"|"$/g,''); });
+    const name   = r['商品'] || '';
+    const gmv    = parseInt((r['GMV']||'0').replace(/[¥,円,]/g,''))||0;
     const orders = parseInt(r['订单数']||'0')||0;
-    const imp   = parseInt(r['商城页发品曝光次数']||'0')||0;
+    const imp    = parseInt(r['商城页发品曝光次数']||'0')||0;
     const clicks = parseInt(r['商城页面浏览次数']||'0')||0;
-    const ctr   = imp > 0 ? Math.round(clicks/imp*1000)/10 : 0;
-
-    if (!name) continue;
-    results.push({
-      week: currentWeek, name_jp: name, name_zh: '',
-      gmv, orders, impressions: imp, ctr,
-      status: gmv > 0 ? (ctr > 5 ? 'hot' : 'good') : (imp > 0 ? 'warn' : 'pending'),
-    });
+    const ctr    = imp > 0 ? Math.round(clicks/imp*1000)/10 : 0;
+    if (!name || name === '商品') continue;
+    results.push({ week, name_jp: name, name_zh: '', gmv, orders, impressions: imp, ctr,
+      status: gmv > 0 ? (ctr > 5 ? 'hot' : 'good') : (imp > 0 ? 'warn' : 'pending') });
   }
   return results;
 }
@@ -458,30 +483,30 @@ function parseProducts(csv) {
 function parseVideos(csv) {
   const lines = csv.trim().split('\n');
   const results = [];
-  let currentWeek = '', currentHeaders = [];
 
-  for (const line of lines) {
-    const cols = parseCSVLine(line);
-    if (!cols.length || cols.every(c => !c)) continue;
-
-    const weekCell   = cols[0].replace(/^"|"$/g,'').trim();
-    const secondCell = (cols[1]||'').replace(/^"|"$/g,'').trim();
-
-    if (weekCell && weekCell.includes('~')) currentWeek = weekCell;
-
-    // 標題行辨識：达人昵称 或 达人ID
-    if (secondCell === '达人昵称' || secondCell === '达人ID') {
-      currentHeaders = cols.slice(1).map(c => c.replace(/^"|"$/g,''));
-      continue;
+  // 找標題行：B欄是 "达人昵称" 的那行
+  let headerRowIdx = -1, headers = [];
+  for (let i = 0; i < lines.length; i++) {
+    const cols = parseCSVLine(lines[i]);
+    const b = (cols[1]||'').replace(/^"|"$/g,'').trim();
+    if (b === '达人昵称' || b === '达人ID') {
+      headerRowIdx = i;
+      headers = cols.slice(1).map(c=>c.replace(/^"|"$/g,''));
+      break;
     }
-    // 日期範圍行（[日期范围]:）也跳過
-    if (weekCell.includes('[日期') || secondCell.includes('[日期')) continue;
+  }
+  if (headerRowIdx < 0) return [];
 
-    if (!currentWeek || !currentHeaders.length || !secondCell) continue;
-
+  for (let i = headerRowIdx + 1; i < lines.length; i++) {
+    const cols = parseCSVLine(lines[i]);
+    if (!cols.length || cols.every(c=>!c)) continue;
+    const rawWeek    = (cols[0]||'').replace(/^"|"$/g,'').trim();
+    const secondCell = (cols[1]||'').replace(/^"|"$/g,'').trim();
+    if (secondCell === '达人昵称' || !secondCell) continue;
+    const week = rawWeek.includes('~') ? normalizeWeek(rawWeek) : '';
+    if (!week) continue;
     const r = {};
-    cols.slice(1).forEach((v,i) => { r[currentHeaders[i]] = v.replace(/^"|"$/g,''); });
-
+    cols.slice(1).forEach((v,j) => { r[headers[j]||''] = v.replace(/^"|"$/g,''); });
     const rawTitle = r['视频信息'] || '';
     const title = rawTitle.replace(/#\S+/g,'').replace(/\s+/g,' ').trim().slice(0,45);
     const plays  = parseInt(r['VV']||'0')||0;
@@ -489,9 +514,8 @@ function parseVideos(csv) {
     const clicks = parseInt(r['引流次数']||r['商品点击次数']||'0')||0;
     const gmv    = parseFloat(r['GMV（视频） (円)']||r['GMV']||'0')||0;
     const cvr    = plays > 0 && clicks > 0 ? Math.round(clicks/plays*1000)/10 : 0;
-
     if (!title || plays === 0) continue;
-    results.push({ week: currentWeek, name_jp: title, name_zh: '', plays, likes, clicks, cvr, gmv });
+    results.push({ week, name_jp: title, name_zh: '', plays, likes, clicks, cvr, gmv });
   }
   return results;
 }
@@ -543,12 +567,6 @@ function getAvailableWeeks() {
 function getAvailableMonths() {
   const months = new Set(availableWeeks.map(w => weekToMonth(w)));
   return [...months].sort();
-}
-
-// 從週期字串提取月份，如 "2026/04/05~04/11" → "2026/04"
-function weekToMonth(week) {
-  const m = week.match(/^(\d{4}\/\d{2})/);
-  return m ? m[1] : week.slice(0,7);
 }
 
 // 取得某月份下的所有週期
@@ -620,14 +638,15 @@ function getCalendarWeeks(year, month) {
   return weeks;
 }
 
-// 判斷兩個週期字串是否重疊（粗略比對月/日）
+// 判斷 Sheet 裡的週期是否屬於日曆週範圍（比對月/日部分）
 function rangesOverlap(weekStr, calRange) {
-  // weekStr: "2026/04/05~04/11"，calRange: "4/05~4/11"
-  const norm = s => s.replace(/\d{4}\//,'').replace(/(\d+)\/(\d+)/g, (_,m,d) => `${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`);
-  return norm(weekStr) === norm(calRange) ||
-    weekStr.includes(calRange.split('~')[0].replace(/^(\d)\//, '0$1/')) ||
-    calRange.replace(/(\d+)\/(\d+)/g, (_,m,d)=>`${m.padStart(2,'0')}/${d.padStart(2,'0')}`) ===
-      weekStr.replace(/\d{4}\//,'').replace(/(\d+)\/(\d+)/g, (_,m,d)=>`${m.padStart(2,'0')}/${d.padStart(2,'0')}`);
+  // weekStr 已經被 normalizeWeek 處理為 "2026/03/22~03/28"
+  // calRange 是 getCalendarWeeks 產生的 "3/22~3/28" 格式
+  // 提取 weekStr 的月/日部分
+  const weekPart = weekStr.replace(/^\d{4}\//,''); // "03/22~03/28"
+  const calNorm = calRange.replace(/(\d+)\/(\d+)/g, (_,m,d) =>
+    `${m.padStart(2,'0')}/${d.padStart(2,'0')}`); // "03/22~03/28"
+  return weekPart === calNorm;
 }
 
 function changeDisplayMonth(dir) {
