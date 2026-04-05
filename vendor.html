@@ -11,7 +11,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:1.6}
 .container{max-width:1100px;margin:0 auto;padding:0 32px 100px}
- 
+
 /* LOADING */
 #loading-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
 .spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
@@ -140,6 +140,27 @@ footer p{font-size:12px;color:var(--text-3)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.charts-grid{grid-template-columns:1fr}.ai-blocks{grid-template-columns:1fr}.week-grid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:600px){.kpi-grid{grid-template-columns:1fr}.week-grid{grid-template-columns:repeat(2,1fr)}}
+
+@media(max-width:600px){
+  /* Tables → card layout on mobile */
+  .data-table thead{display:none}
+  .data-table tr{display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;padding:14px 16px}
+  .data-table td{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border-light);font-size:14px}
+  .data-table td:last-child{border-bottom:none}
+  .data-table td::before{content:attr(data-label);font-size:11px;font-weight:600;color:var(--text-3);letter-spacing:.5px;text-transform:uppercase;flex-shrink:0;margin-right:12px;padding-top:2px}
+  /* Calendar fix */
+  .cal-grid{grid-template-columns:repeat(7,1fr);gap:1px}
+  .cal-day{min-height:52px;padding:4px}
+  .cal-date{font-size:11px}
+  .cal-event{font-size:9px;padding:1px 3px}
+  .cal-day-name{font-size:10px;padding:4px 0}
+  /* Period selector */
+  .week-tabs{gap:6px}
+  .week-tab{padding:7px 10px}
+  /* Banner */
+  .vendor-banner{height:120px}
+  .banner-logo{font-size:22px}
+}
 </style>
 </head>
 <body>
@@ -234,7 +255,12 @@ footer p{font-size:12px;color:var(--text-3)}
       <div class="month-header"><div class="month-title" id="sched-month-title"></div><div class="nav-btns"><button class="nav-btn" onclick="changeSchedMonth(-1)">‹</button><button class="nav-btn" onclick="changeSchedMonth(1)">›</button></div></div>
       <div class="cal-grid" id="cal-grid"></div>
     </div>
-  
+  </div>
+    <table class="history-table">
+      <thead><tr><th>記錄日期</th><th>週期</th><th>本週亮點</th><th>需要關注</th><th>行動建議</th></tr></thead>
+      <tbody id="history-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:24px">生成 AI 分析後將自動儲存於此</td></tr></tbody>
+    </table>
+  </div>
 
   <footer><div class="logo">TK SHOP ANALYTICS</div><p id="footer-txt"></p></footer>
 </div>
@@ -656,13 +682,13 @@ function renderDataForWeek(week) {
   } else {
     vt.innerHTML = vids.map((v,i) => `
       <tr>
-        <td><span class="rank ${['r1','r2','r3','',''][i]||''}">${String(i+1).padStart(2,'0')}</span></td>
-        <td><div class="name-jp">${v.name_jp.slice(0,35)}${v.name_jp.length>35?'…':''}</div></td>
-        <td style="font-weight:600">${v.plays.toLocaleString()}</td>
-        <td style="color:var(--text-2)">${v.likes.toLocaleString()}</td>
-        <td style="color:var(--text-2)">${(v.imp||0).toLocaleString()}</td>
-        <td style="color:var(--text-2)">${(v.clicks||0).toLocaleString()}</td>
-        <td style="color:var(--text-3)">${v.watchRate||'—'}</td>
+        <td data-label="#"><span class="rank ${['r1','r2','r3','',''][i]||''}">${String(i+1).padStart(2,'0')}</span></td>
+        <td data-label="影片內容"><div class="name-jp">${v.name_jp.slice(0,35)}${v.name_jp.length>35?'…':''}</div></td>
+        <td data-label="播放數 VV" style="font-weight:600">${v.plays.toLocaleString()}</td>
+        <td data-label="點讚" style="color:var(--text-2)">${v.likes.toLocaleString()}</td>
+        <td data-label="商品曝光" style="color:var(--text-2)">${(v.imp||0).toLocaleString()}</td>
+        <td data-label="商品點擊" style="color:var(--text-2)">${(v.clicks||0).toLocaleString()}</td>
+        <td data-label="完播率" style="color:var(--text-3)">${v.watchRate||'—'}</td>
       </tr>`).join('');
   }
 
@@ -676,13 +702,13 @@ function renderDataForWeek(week) {
       const lbl = p.status==='hot'?'高轉換':p.status==='warn'?'需優化':p.status==='pending'?'準備中':'穩定';
       const bc  = p.status==='hot'?'hot':p.status==='warn'?'warn':p.status==='pending'?'pending':'good';
       return `<tr>
-        <td><span class="rank ${['r1','r2','r3','','','','',''][i]||''}">${String(i+1).padStart(2,'0')}</span></td>
-        <td><div class="name-jp">${p.name_jp.slice(0,28)}${p.name_jp.length>28?'…':''}</div>${p.name_zh?`<div class="name-zh">${p.name_zh}</div>`:''}</td>
-        <td style="font-weight:600;color:${p.gmv>0?'#0F172A':'#94A3B8'}">${p.gmv>0?'¥'+p.gmv.toLocaleString():'—'}</td>
-        <td>${p.orders}</td>
-        <td style="color:var(--text-2)">${p.impressions.toLocaleString()}</td>
-        <td><div class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:${Math.round(p.ctr/maxCtr*100)}%"></div></div><span style="font-size:12px;min-width:36px;font-weight:500">${p.ctr.toFixed(1)}%</span></div></td>
-        <td><span class="badge ${bc}">${lbl}</span></td>
+        <td data-label="#"><span class="rank ${['r1','r2','r3','','','','',''][i]||''}">${String(i+1).padStart(2,'0')}</span></td>
+        <td data-label="商品名稱"><div class="name-jp">${p.name_jp.slice(0,28)}${p.name_jp.length>28?'…':''}</div>${p.name_zh?`<div class="name-zh">${p.name_zh}</div>`:''}</td>
+        <td data-label="GMV" style="font-weight:600;color:${p.gmv>0?'#0F172A':'#94A3B8'}">${p.gmv>0?'¥'+p.gmv.toLocaleString():'—'}</td>
+        <td data-label="訂單數">${p.orders.toLocaleString()}</td>
+        <td data-label="曝光數" style="color:var(--text-2)">${p.impressions.toLocaleString()}</td>
+        <td data-label="CTR"><span style="font-size:12px;font-weight:500">${p.ctr.toFixed(1)}%</span></td>
+        <td data-label="狀態"><span class="badge ${bc}">${lbl}</span></td>
       </tr>`;
     }).join('');
   }
