@@ -197,7 +197,7 @@ footer p{font-size:12px;color:var(--text-3)}
   <div class="card">
     <div class="card-title">🎬 影片表現排名（播放數）</div>
     <table class="data-table">
-      <thead><tr><th>#</th><th>影片內容</th><th>播放數</th><th>點讚</th><th>引流次數</th><th>CVR</th><th>GMV</th></tr></thead>
+      <thead><tr><th>#</th><th>影片內容</th><th>播放數 VV</th><th>點讚</th><th>商品曝光</th><th>商品點擊</th><th>完播率</th></tr></thead>
       <tbody id="video-tbody"></tbody>
     </table>
   </div>
@@ -235,9 +235,6 @@ footer p{font-size:12px;color:var(--text-3)}
       <div class="cal-grid" id="cal-grid"></div>
     </div>
   </div>
-  <div class="section-label">AI 摘要歷史</div>
-  <div class="card">
-    <div class="card-title">📋 歷史分析記錄</div>
     <table class="history-table">
       <thead><tr><th>記錄日期</th><th>週期</th><th>本週亮點</th><th>需要關注</th><th>行動建議</th></tr></thead>
       <tbody id="history-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:24px">生成 AI 分析後將自動儲存於此</td></tr></tbody>
@@ -459,13 +456,13 @@ function parseVideos(csv) {
     cols.slice(1).forEach((v,j) => { r[headers[j]||''] = v.replace(/^"|"$/g,''); });
     const rawTitle = r['视频信息'] || '';
     const title = rawTitle.replace(/#\S+/g,'').replace(/\s+/g,' ').trim().slice(0,45);
-    const plays  = parseInt(r['VV']||'0')||0;
-    const likes  = parseInt(r['点赞数']||'0')||0;
-    const clicks = parseInt(r['引流次数']||r['商品点击次数']||'0')||0;
-    const gmv    = parseFloat(r['GMV（视频） (円)']||r['GMV']||'0')||0;
-    const cvr    = plays > 0 && clicks > 0 ? Math.round(clicks/plays*1000)/10 : 0;
+    const plays    = parseInt(r['VV']||'0')||0;
+    const likes    = parseInt(r['点赞数']||'0')||0;
+    const imp      = parseInt(r['商品曝光次数']||'0')||0;
+    const clicks   = parseInt(r['商品点击次数']||'0')||0;
+    const watchRate= r['视频完播率']||'0%';
     if (!title || plays === 0) continue;
-    results.push({ week, name_jp: title, name_zh: '', plays, likes, clicks, cvr, gmv });
+    results.push({ week, name_jp: title, name_zh: '', plays, likes, imp, clicks, watchRate });
   }
   return results;
 }
@@ -515,6 +512,13 @@ function renderPeriodSelector() {
 
   const tabsEl = document.getElementById('week-tabs');
   tabsEl.innerHTML = '';
+
+  // Total 按鈕
+  const totalBtn = document.createElement('button');
+  totalBtn.className = 'week-tab' + (selectedWeek==='__total__'?' active':'');
+  totalBtn.innerHTML = `<div style="font-size:13px;font-weight:700">全部總計</div><div style="font-size:11px;opacity:.75;margin-top:2px">${availableWeeks.length} 週數據</div>`;
+  totalBtn.onclick = () => { selectedWeek='__total__'; renderPeriodSelector(); renderDataForWeek('__total__'); };
+  tabsEl.appendChild(totalBtn);
 
   calWeeks.forEach((wRange, idx) => {
     const hasData = weeksThisMonth.some(w => rangesOverlap(w, wRange));
@@ -590,11 +594,23 @@ function changeDisplayMonth(dir) {
 // ── 渲染數據 ──
 function renderDataForWeek(week) {
   if (!week) return;
-  const prods = allProducts.filter(p => p.week === week).sort((a,b) => b.gmv - a.gmv);
-  const vids  = allVideos.filter(v => v.week === week).sort((a,b) => b.plays - a.plays).slice(0,5);
+  const isTotal = week === '__total__';
+  const prods = isTotal
+    ? Object.values(allProducts.reduce((acc,p) => {
+        if(!acc[p.name_jp]){acc[p.name_jp]={...p};}
+        else{acc[p.name_jp].gmv+=p.gmv;acc[p.name_jp].orders+=p.orders;acc[p.name_jp].impressions+=p.impressions;}
+        return acc;
+      },{})).sort((a,b)=>b.gmv-a.gmv)
+    : allProducts.filter(p => p.week === week).sort((a,b) => b.gmv - a.gmv);
+  const vids = isTotal
+    ? Object.values(allVideos.reduce((acc,v) => {
+        if(!acc[v.name_jp]){acc[v.name_jp]={...v};}
+        else{acc[v.name_jp].plays+=v.plays;acc[v.name_jp].likes+=v.likes;acc[v.name_jp].imp=(acc[v.name_jp].imp||0)+(v.imp||0);acc[v.name_jp].clicks+=v.clicks;}
+        return acc;
+      },{})).sort((a,b)=>b.plays-a.plays).slice(0,5)
+    : allVideos.filter(v => v.week === week).sort((a,b) => b.plays - a.plays).slice(0,5);
 
-  // 上週數據（用於週環比）
-  const prevWeek = getPrevWeek(week);
+  const prevWeek = isTotal ? null : getPrevWeek(week);
   const prevProds = prevWeek ? allProducts.filter(p => p.week === prevWeek) : [];
   const prevVids  = prevWeek ? allVideos.filter(v => v.week === prevWeek) : [];
 
@@ -646,12 +662,12 @@ function renderDataForWeek(week) {
     vt.innerHTML = vids.map((v,i) => `
       <tr>
         <td><span class="rank ${['r1','r2','r3','',''][i]||''}">${String(i+1).padStart(2,'0')}</span></td>
-        <td><div class="name-jp">${v.name_jp.slice(0,35)}${v.name_jp.length>35?'…':''}</div>${v.name_zh?`<div class="name-zh">${v.name_zh}</div>`:''}</td>
+        <td><div class="name-jp">${v.name_jp.slice(0,35)}${v.name_jp.length>35?'…':''}</div></td>
         <td style="font-weight:600">${v.plays.toLocaleString()}</td>
         <td style="color:var(--text-2)">${v.likes.toLocaleString()}</td>
-        <td style="color:var(--text-2)">${v.clicks.toLocaleString()}</td>
-        <td style="color:${v.cvr>0?'#059669':'#94A3B8'};font-weight:${v.cvr>0?600:400}">${v.cvr.toFixed(1)}%</td>
-        <td style="font-weight:600;color:${v.gmv>0?'#0F172A':'#94A3B8'}">${v.gmv>0?'¥'+v.gmv.toLocaleString():'—'}</td>
+        <td style="color:var(--text-2)">${(v.imp||0).toLocaleString()}</td>
+        <td style="color:var(--text-2)">${(v.clicks||0).toLocaleString()}</td>
+        <td style="color:var(--text-3)">${v.watchRate||'—'}</td>
       </tr>`).join('');
   }
 
