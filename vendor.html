@@ -134,30 +134,6 @@ canvas{max-height:230px}
 .cal-event{font-size:10px;font-weight:600;padding:2px 4px;border-radius:3px;margin-bottom:2px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cal-event.video{background:#EFF6FF;color:#1D4ED8}.cal-event.product{background:#F5F3FF;color:#6D28D9}.cal-event.sample{background:var(--teal-light);color:var(--teal)}
 
-/* AI */
-.ai-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);position:relative;overflow:hidden}
-.ai-section::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--purple))}
-.ai-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
-.ai-header-left{display:flex;align-items:center;gap:12px}
-.ai-badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent-light);border:1px solid var(--accent-border);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;color:var(--accent);flex-shrink:0}
-.ai-title{font-size:17px;font-weight:700}.ai-subtitle{font-size:12px;color:var(--text-3);margin-top:2px}
-.ai-refresh-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid var(--accent-border);border-radius:8px;background:var(--accent-light);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
-.ai-refresh-btn:hover{background:var(--accent);color:white}.ai-refresh-btn:disabled{opacity:.5;cursor:not-allowed}
-.ai-blocks{display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px}
-.ai-block-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--border)}
-.ai-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.ai-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
-.ai-label.h{color:var(--accent)}.ai-dot.h{background:var(--accent)}.ai-label.a{color:var(--red)}.ai-dot.a{background:var(--red)}.ai-label.r{color:var(--green)}.ai-dot.r{background:var(--green)}
-.ai-item{display:flex;gap:10px;margin-bottom:12px}
-.ai-num{font-size:11px;font-weight:700;color:var(--text-3);flex-shrink:0;margin-top:3px;width:18px}
-.ai-text{font-size:14px;line-height:1.75;color:var(--text-2)}
-.ai-placeholder{color:var(--text-3);font-size:14px;display:flex;align-items:center;gap:8px;padding:8px 0}
-.mini-spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
-.ai-saved-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--green);background:var(--green-light);padding:4px 10px;border-radius:20px;margin-top:10px}
-.history-table{width:100%;border-collapse:collapse;font-size:13px}
-.history-table th{text-align:left;padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-3);border-bottom:2px solid var(--border);text-transform:uppercase;background:var(--surface-2)}
-.history-table td{padding:11px 12px;border-bottom:1px solid var(--border-light);vertical-align:top;color:var(--text-2);line-height:1.6}
-.history-table tr:last-child td{border-bottom:none}
 footer{border-top:1px solid var(--border);padding-top:28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:40px}
 footer .logo{font-size:13px;font-weight:700;color:var(--accent)}
 footer p{font-size:12px;color:var(--text-3)}
@@ -259,26 +235,6 @@ footer p{font-size:12px;color:var(--text-3)}
       <div class="cal-grid" id="cal-grid"></div>
     </div>
   </div>
-
-  <!-- AI -->
-  <div class="section-label">AI 分析建議</div>
-  <div class="ai-section">
-    <div class="ai-header">
-      <div class="ai-header-left">
-        <div class="ai-badge">✦ AI 洞察</div>
-        <div><div class="ai-title">本週專屬分析</div><div class="ai-subtitle" id="ai-sub">自動讀取數據並生成</div></div>
-      </div>
-      <button class="ai-refresh-btn" id="ai-btn" onclick="generateAI()" disabled>⟳ 重新生成</button>
-    </div>
-    <div class="ai-blocks">
-      <div><div class="ai-block-header"><div class="ai-dot h"></div><div class="ai-label h">本週亮點</div></div><div id="ai-h"><div class="ai-placeholder"><div class="mini-spinner"></div>分析中⋯</div></div></div>
-      <div><div class="ai-block-header"><div class="ai-dot a"></div><div class="ai-label a">需要關注</div></div><div id="ai-a"></div></div>
-      <div><div class="ai-block-header"><div class="ai-dot r"></div><div class="ai-label r">下週行動建議</div></div><div id="ai-r"></div></div>
-    </div>
-    <div id="ai-saved-msg" style="display:none"><div class="ai-saved-badge">✓ 已自動儲存到 Google Sheet AI摘要分頁</div></div>
-  </div>
-
-  <!-- HISTORY -->
   <div class="section-label">AI 摘要歷史</div>
   <div class="card">
     <div class="card-title">📋 歷史分析記錄</div>
@@ -318,7 +274,7 @@ const vendor   = VENDORS[vendorId];
 let allProducts  = []; // { week, name_jp, name_zh, gmv, orders, impressions, ctr }
 let allVideos    = []; // { week, name_jp, name_zh, plays, likes, clicks, cvr, gmv }
 let schedEvents  = [];
-let aiHistory    = [];
+
 let translations = {}; // name_jp → name_zh 快取
 
 // 顯示控制
@@ -351,22 +307,13 @@ async function loadAll() {
     const vCsv = await fetchCSV(vendor.gid.video);
     allVideos = parseVideos(vCsv);
 
-    prog(70); setStep('讀取歷史記錄⋯');
-    const aCsv = await fetchCSV(vendor.gid.ai);
-    aiHistory = parseAIHistory(aCsv);
-
-    prog(85); setStep('翻譯名稱⋯');
-    await translateAll();
-
     prog(100); setStep('渲染報告⋯');
     initDisplay();
     renderHeader();
     renderSchedule();
-    renderAIHistory();
 
     hide('loading-screen');
     show('report-content');
-    await generateAI();
 
   } catch(err) {
     setStep('❌ 載入失敗：' + err.message);
@@ -393,19 +340,22 @@ function parseCSVLine(line) {
   return result;
 }
 
-// 排程：第1行標題，往下是數據
+function mapType(t){const m={'影片':'video','拍攝':'video','發布':'video','video':'video','商品':'product','product':'product','商品資料':'product','上架':'product','樣品':'sample','sample':'sample','產品寄送':'sample','寄送':'sample'};for(const k of Object.keys(m)){if(t.includes(k))return m[k];}return 'product';}
+function mapStatus(s){if(s.includes('完成')||s==='done')return'done';if(s.includes('進行')||s==='ongoing')return'ongoing';return'pending';}
+function normalizeDate(d){return d.replace(/\//g,'-').replace(/(\d{4})-(\d{1,2})-(\d{1,2})/,(_,y,m,day)=>`${y}-${m.padStart(2,'0')}-${day.padStart(2,'0')}`);}
+
 function parseSchedule(csv) {
   const lines = csv.trim().split('\n');
   if (lines.length < 2) return [];
   const headers = parseCSVLine(lines[0]);
   return lines.slice(1).map(l => {
-    const r = {}; parseCSVLine(l).forEach((v,i) => r[headers[i]] = v.replace(/^"|"$/g,''));
+    const r = {}; parseCSVLine(l).forEach((v,i) => r[headers[i]||''] = v.replace(/^"|"$/g,''));
     return {
-      date:   r['日期']||r['date']||'',
-      type:   r['類型']||r['type']||'product',
+      date:   normalizeDate(r['日期']||r['date']||''),
+      type:   mapType(r['類型']||r['type']||''),
       title:  r['標題']||r['title']||'',
       detail: r['說明']||r['detail']||'',
-      status: r['狀態']||r['status']||'pending',
+      status: mapStatus(r['狀態']||r['status']||''),
     };
   }).filter(r => r.date && r.title);
 }
@@ -520,43 +470,9 @@ function parseVideos(csv) {
   return results;
 }
 
-function parseAIHistory(csv) {
-  const lines = csv.trim().split('\n');
-  if (lines.length < 2) return [];
-  const headers = parseCSVLine(lines[0]);
-  return lines.slice(1).map(l => {
-    const r = {}; parseCSVLine(l).forEach((v,i) => r[headers[i]] = v.replace(/^"|"$/g,''));
-    return r;
-  }).filter(r => r['記錄日期'] || r['週期']);
-}
 
-// ── 翻譯 ──
-async function translateAll() {
-  const names = [
-    ...new Set([
-      ...allProducts.map(p => p.name_jp),
-      ...allVideos.map(v => v.name_jp),
-    ])
-  ].filter(n => n && !translations[n]).slice(0, 30);
 
-  if (!names.length) return;
 
-  const prompt = `以下是日文商品名稱和影片標題，翻譯成繁體中文，每條15字以內，保留品牌名，直接輸出，每行一個，不要編號不要前言：\n${names.join('\n')}`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:600, messages:[{role:'user',content:prompt}] })
-    });
-    const data = await res.json();
-    const lines = (data.content?.[0]?.text||'').trim().split('\n').map(l=>l.trim()).filter(l=>l);
-    names.forEach((n,i) => { if (lines[i]) translations[n] = lines[i]; });
-  } catch(e) { console.log('翻譯失敗', e); }
-
-  // 填入翻譯
-  allProducts.forEach(p => { p.name_zh = translations[p.name_jp] || ''; });
-  allVideos.forEach(v => { v.name_zh = translations[v.name_jp] || ''; });
-}
 
 // ── 週期管理 ──
 function getAvailableWeeks() {
@@ -747,7 +663,7 @@ function renderDataForWeek(week) {
     }).join('');
   }
 
-  document.getElementById('ai-btn').disabled = false;
+  
 }
 
 function getPrevWeek(week) {
@@ -820,64 +736,15 @@ function changeSchedWeek(d){schedWeekStart.setDate(schedWeekStart.getDate()+d*7)
 function changeSchedMonth(d){schedMonth.setMonth(schedMonth.getMonth()+d);renderSchedMonth()}
 
 // ── AI ──
-async function generateAI() {
-  const btn=document.getElementById('ai-btn');
-  btn.disabled=true;btn.textContent='⟳ 生成中⋯';
-  document.getElementById('ai-h').innerHTML=`<div class="ai-placeholder"><div class="mini-spinner"></div>AI 分析中⋯</div>`;
-  document.getElementById('ai-a').innerHTML='';document.getElementById('ai-r').innerHTML='';
-  document.getElementById('ai-saved-msg').style.display='none';
 
-  const prods=allProducts.filter(p=>p.week===selectedWeek).slice(0,5);
-  const vids=allVideos.filter(v=>v.week===selectedWeek).slice(0,3);
-  const upcoming=schedEvents.filter(e=>e.status==='pending').slice(0,3).map(e=>`${e.date} ${e.title}`).join('、');
 
-  const prodSummary=prods.map(p=>`${p.name_zh||p.name_jp.slice(0,12)}：GMV¥${p.gmv} 訂單${p.orders}件 曝光${p.impressions} CTR${p.ctr}%`).join('；');
-  const vidSummary=vids.map(v=>`${v.name_zh||v.name_jp.slice(0,12)}：播放${v.plays}次 GMV¥${v.gmv}`).join('；');
 
-  const prompt=`你是日本TikTok Shop顧問，服務台灣客戶。以下是${vendor.name}本週（${selectedWeek}）數據：\n商品：${prodSummary||'尚無數據'}\n影片：${vidSummary||'尚無數據'}\n即將排程：${upcoming||'無'}\n\n用繁體中文，每條30-50字，格式嚴格如下（直接輸出不要前言）：\nHIGHLIGHTS:\n- [亮點1]\n- [亮點2]\n- [亮點3]\nALERTS:\n- [需關注1]\n- [需關注2]\nACTIONS:\n- [行動1]\n- [行動2]\n- [行動3]`;
 
-  try {
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:700,messages:[{role:'user',content:prompt}]})});
-    const data=await res.json();
-    const parsed=parseAIText(data.content?.[0]?.text||'');
-    renderAIResult(parsed);
-    await saveAI(parsed);
-  } catch(e) {
-    document.getElementById('ai-h').innerHTML=`<div style="color:var(--text-3);font-size:14px">生成失敗，請點右上角重試</div>`;
-  }
-  btn.disabled=false;btn.textContent='⟳ 重新生成';
-}
 
-function parseAIText(text) {
-  const sec=label=>{const m=text.match(new RegExp(label+':?\\n([\\s\\S]*?)(?=\\n[A-Z]+:|$)'));return m?m[1].trim().split('\n').map(l=>l.replace(/^[-•*]\s*/,'')).filter(l=>l.length>5):[];};
-  return{highlights:sec('HIGHLIGHTS'),alerts:sec('ALERTS'),actions:sec('ACTIONS')};
-}
 
-function renderAIResult(p) {
-  const mk=items=>items.map((t,i)=>`<div class="ai-item"><span class="ai-num">${String(i+1).padStart(2,'0')}</span><span class="ai-text">${t}</span></div>`).join('');
-  document.getElementById('ai-h').innerHTML=mk(p.highlights.length?p.highlights:['數據分析完成']);
-  document.getElementById('ai-a').innerHTML=mk(p.alerts.length?p.alerts:['目前無明顯異常']);
-  document.getElementById('ai-r').innerHTML=mk(p.actions.length?p.actions:['持續追蹤各指標']);
-  document.getElementById('ai-sub').textContent=`依據本週（${selectedWeek}）實際數據生成 · ${new Date().toLocaleString('zh-TW')}`;
-}
 
-async function saveAI(parsed) {
-  if (!vendor.apps_script_url) return;
-  try {
-    await fetch(vendor.apps_script_url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({period:selectedWeek,highlights:parsed.highlights,alerts:parsed.alerts,actions:parsed.actions})});
-    document.getElementById('ai-saved-msg').style.display='block';
-    const csv=await fetchCSV(vendor.gid.ai);
-    aiHistory=parseAIHistory(csv);
-    renderAIHistory();
-  } catch(e){console.log('寫回失敗',e);}
-}
 
-function renderAIHistory() {
-  const tb=document.getElementById('history-tbody');
-  const rows=aiHistory.filter(r=>r['記錄日期']||r['週期']);
-  if(!rows.length){tb.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-3);padding:24px">生成 AI 分析後將自動儲存於此</td></tr>`;return;}
-  tb.innerHTML=[...rows].reverse().map(r=>`<tr><td style="white-space:nowrap;color:var(--text-3)">${r['記錄日期']||''}</td><td style="white-space:nowrap;color:var(--accent);font-weight:600">${r['週期']||''}</td><td>${[r['亮點1'],r['亮點2'],r['亮點3']].filter(Boolean).join('<br><br>')}</td><td>${[r['需關注1'],r['需關注2']].filter(Boolean).join('<br><br>')}</td><td>${[r['建議1'],r['建議2'],r['建議3']].filter(Boolean).join('<br><br>')}</td></tr>`).join('');
-}
+
 
 // ── Utils ──
 function show(id){document.getElementById(id).style.display='block'}
