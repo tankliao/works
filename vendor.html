@@ -355,7 +355,7 @@ function parseCSVLine(line) {
 
 function mapType(t){const m={'影片':'video','拍攝':'video','發布':'video','video':'video','商品':'product','product':'product','商品資料':'product','上架':'product','樣品':'sample','sample':'sample','產品寄送':'sample','寄送':'sample'};for(const k of Object.keys(m)){if(t.includes(k))return m[k];}return 'product';}
 function mapStatus(s){if(s.includes('完成')||s==='done')return'done';if(s.includes('進行')||s==='ongoing')return'ongoing';return'pending';}
-function normalizeDate(d){const m=d.replace(/\//g,'-').match(/(\d{4})-(\d{1,2})-(\d{1,2})/);return m?`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`:d;}
+function normalizeDate(d){const s=d.replace(/\//g,'-');const m=s.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(!m)return d;return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;}
 
 function parseSchedule(csv) {
   const lines = csv.trim().split('\n');
@@ -740,7 +740,7 @@ function renderSchedWeek() {
   for(let i=0;i<7;i++){
     const d=new Date(start);d.setDate(start.getDate()+i);
     const isToday=d.getTime()===today.getTime();
-    const key=d.toISOString().slice(0,10);
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const evs=schedEvents.filter(e=>e.date===key);
     const evHtml=evs.map(e=>`<div class="week-event ${e.type}"><div class="week-event-title">${e.title}</div><div class="week-event-detail">${e.detail}</div><span class="status-pill ${e.status}">${e.status==='done'?'完成':e.status==='ongoing'?'進行中':'待辦'}</span></div>`).join('');
     grid.innerHTML+=`<div class="week-col${isToday?' today-col':''}"><div class="week-col-head"><div class="week-day-name">${days[i]}</div><div class="week-day-num${isToday?' today-num':''}">${d.getDate()}</div></div><div class="week-col-body">${evHtml||'<div style="color:var(--text-3);font-size:11px;padding:4px">—</div>'}</div></div>`;
@@ -758,7 +758,7 @@ function renderSchedMonth() {
   for(let day=1;day<=dim;day++){
     const d=new Date(y,m,day);d.setHours(0,0,0,0);
     const isToday=d.getTime()===today.getTime();
-    const key=d.toISOString().slice(0,10);
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const evs=schedEvents.filter(e=>e.date===key);
     const evHtml=evs.map(e=>`<div class="cal-event ${e.type}" title="${e.title}">${e.title}</div>`).join('');
     grid.innerHTML+=`<div class="cal-day${isToday?' today':''}"><div class="cal-date${isToday?' today-num':''}">${day}</div>${evHtml}</div>`;
