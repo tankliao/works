@@ -214,7 +214,7 @@ footer p{font-size:12px;color:var(--text-3)}
   </div>
 
   <!-- VIDEO -->
-  <div class="section-label">影片績效</div>
+  <div class="section-label" style="justify-content:space-between">影片績效<a id="sheet-link-video" href="#" target="_blank" style="font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-light);border:1px solid var(--accent-border);padding:5px 12px;border-radius:8px;text-decoration:none;letter-spacing:0;text-transform:none">✏️ 更新影片數據</a></div>
   <div class="card">
     <div class="card-title">🎬 影片表現排名（播放數）</div>
     <table class="data-table">
@@ -224,7 +224,7 @@ footer p{font-size:12px;color:var(--text-3)}
   </div>
 
   <!-- PRODUCT -->
-  <div class="section-label">商品卡績效</div>
+  <div class="section-label" style="justify-content:space-between">商品卡績效<a id="sheet-link-product" href="#" target="_blank" style="font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-light);border:1px solid var(--accent-border);padding:5px 12px;border-radius:8px;text-decoration:none;letter-spacing:0;text-transform:none">✏️ 更新商品數據</a></div>
   <div class="card">
     <div class="card-title">🛍️ 商品排名（GMV）</div>
     <table class="data-table">
@@ -234,7 +234,7 @@ footer p{font-size:12px;color:var(--text-3)}
   </div>
 
   <!-- SCHEDULE -->
-  <div class="section-label">專案排程</div>
+  <div class="section-label" style="justify-content:space-between">專案排程<a id="sheet-link-schedule" href="#" target="_blank" style="font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-light);border:1px solid var(--accent-border);padding:5px 12px;border-radius:8px;text-decoration:none;letter-spacing:0;text-transform:none">✏️ 編輯排程</a></div>
   <div class="card">
     <div class="sched-controls">
       <div class="sched-toggle">
@@ -275,6 +275,9 @@ const VENDORS = {
     pub_id: "2PACX-1vSxqB6AZWgOdCSyADviAcagJdDyMnaVc1cBHOO6DNlPvgHzToHgHuoSsKrhlEEuXCr-0p0JLnHCGTBw",
     gid: { schedule:"0", product:"998508106", video:"290186621", ai:"1219045377" },
     apps_script_url: "", // ← 部署 Apps Script 後填入
+    sheet_url_schedule: "https://docs.google.com/spreadsheets/d/1i9_uxRltbPPoc3O83a4DgV8ZijGWDEB76dBgD1GnSoY/edit#gid=0",
+    sheet_url_product:  "https://docs.google.com/spreadsheets/d/1i9_uxRltbPPoc3O83a4DgV8ZijGWDEB76dBgD1GnSoY/edit#gid=998508106",
+    sheet_url_video:    "https://docs.google.com/spreadsheets/d/1i9_uxRltbPPoc3O83a4DgV8ZijGWDEB76dBgD1GnSoY/edit#gid=290186621",
   },
 };
 // ══════════════════════════════════════════════════════════
@@ -726,6 +729,7 @@ function renderHeader() {
   document.getElementById('vendor-name-jp').textContent = vendor.name_jp;
   document.getElementById('rep-generated').textContent = `更新：${new Date().toLocaleDateString('zh-TW')}`;
   document.getElementById('footer-txt').textContent = `${vendor.name} 專屬報告 · Confidential`;
+  ['schedule','product','video'].forEach(k=>{const el=document.getElementById('sheet-link-'+k);if(el&&vendor['sheet_url_'+k])el.href=vendor['sheet_url_'+k];});
 }
 
 // ── 排程（不變） ──
